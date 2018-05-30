@@ -20,6 +20,8 @@ namespace JobPortal.Persistence.EntityConfigurations
         builder.Property(p => p.Address)
         .HasMaxLength(50);
 
+        builder.Property(p => p.UserId).IsRequired();
+
         // relashionships
         builder.HasMany(p => p.Jobs)
         .WithOne(p => p.Company);

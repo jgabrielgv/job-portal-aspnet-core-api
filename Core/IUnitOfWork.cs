@@ -1,5 +1,6 @@
 using JobPortal.Core.Repositories;
 using System;
+using System.Threading.Tasks;
 
 namespace JobPortal.Core
 {
@@ -7,5 +8,6 @@ namespace JobPortal.Core
     {
         ICompanyRepository Companies { get; }
         int Complete();
+        Task<int> CompleteAsync();
     }
 }

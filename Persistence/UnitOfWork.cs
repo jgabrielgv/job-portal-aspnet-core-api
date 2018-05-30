@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using JobPortal.Core;
 using JobPortal.Core.Repositories;
 using JobPortal.Persistence.Repositories;
@@ -18,6 +19,7 @@ namespace JobPortal.Persistence
         public ICompanyRepository Companies { get; private set; }
 
         public int Complete() => _context.SaveChanges();
+        public Task<int> CompleteAsync() => _context.SaveChangesAsync();
         public void Dispose() =>_context.Dispose();
     }
 }

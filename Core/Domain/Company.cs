@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace JobPortal.Core.Domain
 {
@@ -15,6 +16,7 @@ namespace JobPortal.Core.Domain
         public string City { get; set; }
         public string Address { get; set; }
 
+        [JsonIgnore]
         public virtual ApplicationUser User { get; set; }
 
         public string UserId { get; set; }
