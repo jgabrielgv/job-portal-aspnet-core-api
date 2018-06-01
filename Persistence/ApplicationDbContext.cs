@@ -17,11 +17,15 @@ namespace JobPortal.Persistence
         protected override void OnModelCreating(ModelBuilder builder) {
             builder.ApplyConfiguration(new CompanyConfiguration());
             builder.ApplyConfiguration(new JobConfiguration());
+            builder.ApplyConfiguration(new ApplicationConfiguration());
+            builder.ApplyConfiguration(new CandidateConfiguration());
             base.OnModelCreating(builder);
         }
         #endregion
 
         #region Properties
+        public virtual DbSet<Application> Applications { get; set; }
+        public virtual DbSet<Candidate> Candidates { get; set; }
         public virtual DbSet<Company> Companies { get; set; }
         public virtual DbSet<Job> Jobs { get; set; }
         #endregion

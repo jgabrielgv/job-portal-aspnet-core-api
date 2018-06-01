@@ -7,26 +7,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobPortal.Controllers
 {
-    // [Authorize]
+    [Authorize]
     [Route("api/[controller]")]
-    public class CompaniesController : Controller
+    public class CompaniesController : BaseController
     {
-        private IUnitOfWork _unitOfWork;
-
-        public CompaniesController(IUnitOfWork unitOfWork)
+        public CompaniesController(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Company>> Get() {
-            return await _unitOfWork.Companies.GetAllAsync();
-        }
+        public async Task<IActionResult> Get() => Ok(await UnitOfWork.Companies.GetAllAsync());
 
         [HttpPost]
-        public async Task Create([FromBody] Company company) {
-            await _unitOfWork.Companies.AddAsync(company);
-            await _unitOfWork.CompleteAsync();
+        public async Task<IActionResult> Create([FromBody] Company company) {
+            await UnitOfWork.Companies.AddAsync(company);
+            await UnitOfWork.CompleteAsync();
+            return new CreatedResult("/api/companies", company);
         }
     }
 }
