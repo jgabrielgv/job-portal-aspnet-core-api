@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using JobPortal.DTOs;
 
 namespace JobPortal.Controllers
 {
@@ -34,7 +35,7 @@ namespace JobPortal.Controllers
         
         [Route("login")]
         [HttpPost]
-        public async Task<object> Login([FromBody] LoginDto model)
+        public async Task<object> Login([FromBody] LoginDTO model)
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
             
@@ -44,14 +45,16 @@ namespace JobPortal.Controllers
                 return new {
                     token = await GenerateJwtToken(model.Email, appUser)
                 };
-            } 
+            } else {
+                return BadRequest("Invalid login.");
+            }
             
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
        
         [Route("register")]
         [HttpPost]
-        public async Task<object> Register([FromBody] RegisterDto model)
+        public async Task<object> Register([FromBody] RegisterDTO model)
         {
             var user = new ApplicationUser
             {
@@ -65,7 +68,7 @@ namespace JobPortal.Controllers
                 await _signInManager.SignInAsync(user, false);
                 return new { token = await GenerateJwtToken(model.Email, user) };
             } else {
-                return BadRequest(result.Errors.First().Description); // fix this
+                return BadRequest(result.Errors.Any() ? result.Errors.First().Description : "Invalid signup. Please try again."); // fix this
             }
             
             throw new ApplicationException("UNKNOWN_ERROR");
@@ -93,26 +96,6 @@ namespace JobPortal.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-        
-        public class LoginDto
-        {
-            [Required]
-            public string Email { get; set; }
-
-            [Required]
-            public string Password { get; set; }
-
-        }
-        
-        public class RegisterDto
-        {
-            [Required]
-            public string Email { get; set; }
-
-            [Required]
-            [StringLength(100, ErrorMessage = "PASSWORD_MIN_LENGTH", MinimumLength = 6)]
-            public string Password { get; set; }
         }
     }
 }

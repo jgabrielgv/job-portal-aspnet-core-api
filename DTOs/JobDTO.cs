@@ -1,9 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace JobPortal.ViewModels
+namespace JobPortal.DTOs
 {
-    public class JobViewModel
+    public class JobDTO
     {
         [Required]
         public virtual int JobId { get; set; }
