@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobPortal.Controllers
 {
-    [Authorize]
-    [Route("api/[controller]")]
     public class CompaniesController : BaseController
     {
         public CompaniesController(IUnitOfWork unitOfWork) : base(unitOfWork)

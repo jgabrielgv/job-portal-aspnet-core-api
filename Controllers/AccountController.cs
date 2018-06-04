@@ -32,6 +32,7 @@ namespace JobPortal.Controllers
             _configuration =     configuration;
         }
         
+        [Route("login")]
         [HttpPost]
         public async Task<object> Login([FromBody] LoginDto model)
         {
@@ -40,7 +41,9 @@ namespace JobPortal.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
-                return await GenerateJwtToken(model.Email, appUser);
+                return new {
+                    token = await GenerateJwtToken(model.Email, appUser)
+                };
             } 
             
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
