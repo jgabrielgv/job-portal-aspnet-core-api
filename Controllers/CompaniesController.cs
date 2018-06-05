@@ -1,16 +1,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using JobPortal.Core;
 using JobPortal.Core.Domain;
 using JobPortal.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobPortal.Controllers
 {
     public class CompaniesController : BaseController
     {
-        public CompaniesController(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public CompaniesController(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager) : base(unitOfWork, mapper, userManager)
         {
         }
 
@@ -24,16 +27,12 @@ namespace JobPortal.Controllers
             {
                 return BadRequest(ModelState);
             }
-            Company companyEntity = ToCompanyEntity(company);
+            Company companyEntity = Mapper.Map<CompanyDTO, Company>(company);
+            companyEntity.UserId = UserManager.GetUserId(User);
+
             await UnitOfWork.Companies.AddAsync(companyEntity);
             await UnitOfWork.CompleteAsync();
             return new CreatedResult("/api/companies", companyEntity);
         }
-
-        protected virtual Company ToCompanyEntity(CompanyDTO company) => new Company {
-            Name = company.Name,
-            City = company.City,
-            Address = company.Address
-        };
     }
 }

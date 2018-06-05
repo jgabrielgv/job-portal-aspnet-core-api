@@ -32,13 +32,13 @@ namespace JobPortal.Controllers
             _signInManager = signInManager;
             _configuration =     configuration;
         }
-        
+
         [Route("login")]
         [HttpPost]
         public async Task<object> Login([FromBody] LoginDTO model)
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-            
+
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
@@ -48,17 +48,17 @@ namespace JobPortal.Controllers
             } else {
                 return BadRequest("Invalid login.");
             }
-            
+
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
-       
+
         [Route("register")]
         [HttpPost]
         public async Task<object> Register([FromBody] RegisterDTO model)
         {
             var user = new ApplicationUser
             {
-                UserName = model.Email, 
+                UserName = model.Email,
                 Email = model.Email
             };
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -70,10 +70,9 @@ namespace JobPortal.Controllers
             } else {
                 return BadRequest(result.Errors.Any() ? result.Errors.First().Description : "Invalid signup. Please try again."); // fix this
             }
-            
             throw new ApplicationException("UNKNOWN_ERROR");
         }
-        
+
         private async Task<object> GenerateJwtToken(string email, IdentityUser user)
         {
             var claims = new List<Claim>
@@ -95,7 +94,7 @@ namespace JobPortal.Controllers
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return await Task.Run(() => new JwtSecurityTokenHandler().WriteToken(token));
         }
     }
 }
