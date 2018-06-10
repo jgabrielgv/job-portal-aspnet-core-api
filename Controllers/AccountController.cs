@@ -93,11 +93,7 @@ namespace JobPortal.Controllers
                 string refreshToken = GenerateRefreshToken();
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == login.Email);
 
-                RefreshUserToken userToken = new RefreshUserToken {
-                    RefreshUserTokenId = Guid.NewGuid().ToString(),
-                    RefreshToken = refreshToken,
-                    UserId = appUser.Id
-                };
+                RefreshUserToken userToken = CreateRefreshUserToken(refreshToken, appUser);
                 await UnitOfWork.UserTokens.AddAsync(userToken);
                 await UnitOfWork.CompleteAsync();
 
