@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using JobPortal.DTOs;
+using JobPortal.Core;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace JobPortal.Controllers
 {
@@ -25,28 +27,28 @@ namespace JobPortal.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IConfiguration configuration
+            IConfiguration configuration,
+            IUnitOfWork unitOfWork
             )
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration =     configuration;
+            UnitOfWork = unitOfWork;
         }
 
         [Route("login")]
         [HttpPost]
         public async Task<object> Login([FromBody] LoginDTO model)
         {
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+            if(!this.ValidateLogin(model, ModelState)) {
+                return BadRequest(ModelState);
+            }
 
-            if (result.Succeeded)
-            {
-                var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
-                return new {
-                    token = await GenerateJwtToken(model.Email, appUser)
-                };
-            } else {
-                return BadRequest("Invalid login.");
+            if(model.Grant_Type == "password") {
+                return await PasswordLogin(model, ModelState);
+            } else if(model.Grant_Type == "refresh_token") {
+                return await RefreshUserTokenLogin(model, ModelState);
             }
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
@@ -66,14 +68,79 @@ namespace JobPortal.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return new { token = await GenerateJwtToken(model.Email, user) };
+
+                var refreshToken = GenerateRefreshToken();
+
+                RefreshUserToken userToken = CreateRefreshUserToken(refreshToken, user);
+                await UnitOfWork.UserTokens.AddAsync(userToken);
+                await UnitOfWork.CompleteAsync();
+
+                return new {
+                    token = await GenerateJwtToken(model.Email, user),
+                    refresh_token = refreshToken
+                };
             } else {
                 return BadRequest(result.Errors.Any() ? result.Errors.First().Description : "Invalid signup. Please try again."); // fix this
             }
             throw new ApplicationException("UNKNOWN_ERROR");
         }
 
-        private async Task<object> GenerateJwtToken(string email, IdentityUser user)
+        protected virtual async Task<IActionResult> PasswordLogin(LoginDTO login, ModelStateDictionary modelState) {
+             var result = await _signInManager.PasswordSignInAsync(login.Email, login.Password, false, false);
+
+            if (result.Succeeded)
+            {
+                string refreshToken = GenerateRefreshToken();
+                var appUser = _userManager.Users.SingleOrDefault(r => r.Email == login.Email);
+
+                RefreshUserToken userToken = new RefreshUserToken {
+                    RefreshUserTokenId = Guid.NewGuid().ToString(),
+                    RefreshToken = refreshToken,
+                    UserId = appUser.Id
+                };
+                await UnitOfWork.UserTokens.AddAsync(userToken);
+                await UnitOfWork.CompleteAsync();
+
+                return Ok(new {
+                    token = await GenerateJwtToken(login.Email, appUser),
+                    refresh_token = refreshToken
+                });
+            } else {
+                return BadRequest("Invalid login.");
+            }
+        }
+
+        protected virtual async Task<IActionResult> RefreshUserTokenLogin(LoginDTO login, ModelStateDictionary  modelState) {
+            RefreshUserToken existingToken = await UnitOfWork.UserTokens.SingleOrDefaultAsync(p => p.RefreshToken == login.Refresh_Token);
+            if(existingToken == null) {
+                return BadRequest("Invalid Refesh Token");
+            }
+
+            ApplicationUser appUser = _userManager.Users.SingleOrDefault(e => e.Id == existingToken.UserId);
+            if(appUser == null) {
+                return BadRequest("User no longer exists");
+            }
+
+            UnitOfWork.UserTokens.Remove(existingToken);
+            string refreshToken = GenerateRefreshToken();
+            await UnitOfWork.UserTokens.AddAsync(CreateRefreshUserToken(refreshToken, appUser));
+            await UnitOfWork.CompleteAsync();
+
+            return Ok(new {
+                token = await GenerateJwtToken(existingToken.User.Email, appUser),
+                refresh_token = refreshToken
+            });
+        }
+
+        protected virtual RefreshUserToken CreateRefreshUserToken(string refreshToken, ApplicationUser appUser) => new RefreshUserToken {
+                    RefreshUserTokenId = Guid.NewGuid().ToString(),
+                    RefreshToken = refreshToken,
+                    UserId = appUser.Id
+                };
+
+        protected virtual string GenerateRefreshToken() => Guid.NewGuid().ToString().Replace("-", "");
+
+        protected virtual async Task<object> GenerateJwtToken(string email, IdentityUser user)
         {
             var claims = new List<Claim>
             {
@@ -96,5 +163,29 @@ namespace JobPortal.Controllers
 
             return await Task.Run(() => new JwtSecurityTokenHandler().WriteToken(token));
         }
+
+        protected virtual bool ValidateLogin (LoginDTO login, ModelStateDictionary modelState) {
+            if (!modelState.IsValid) {
+                return modelState.IsValid;
+            }
+            if(login.Grant_Type != "password" && login.Grant_Type != "refresh_token") {
+                modelState.AddModelError("GrantType", "Invalid Grant Type");
+            }
+            if(login.Grant_Type == "password") {
+                if(string.IsNullOrEmpty(login.Email)) {
+                    modelState.AddModelError("Email", "Email field is required");
+                }
+                if(string.IsNullOrEmpty(login.Password)) {
+                    modelState.AddModelError("Password", "Password field is required");
+                }
+            } else if(login.Grant_Type == "refresh_token") {
+                if(string.IsNullOrEmpty(login.Refresh_Token)) {
+                    modelState.AddModelError("Refresh_Token", "Refresh_Token field is required");
+                }
+            }
+            return modelState.IsValid;
+        }
+
+        public IUnitOfWork UnitOfWork { get; private set; }
     }
 }

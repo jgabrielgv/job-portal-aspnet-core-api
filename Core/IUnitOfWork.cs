@@ -10,6 +10,7 @@ namespace JobPortal.Core
         ICandidateRepository Candidates { get; }
         ICompanyRepository Companies { get; }
         IJobRepository Jobs { get; }
+        IRefreshUserToken UserTokens { get; }
         int Complete();
         Task<int> CompleteAsync();
     }

@@ -2,15 +2,16 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace JobPortal.DTOs {
-    public class LoginDTO
-        {
-            [Required]
-            [MaxLength(256)]
-            public string Email { get; set; }
+    public class LoginDTO {
+        [MaxLength (256)]
+        public string Email { get; set; }
 
-            [Required]
-            [MaxLength(256)]
-            public string Password { get; set; }
+        [MinLength (6)]
+        [MaxLength (256)]
+        public string Password { get; set; }
 
-        }
+        [Required]
+        public string Grant_Type { get; set; }
+        public string Refresh_Token { get; set; }
+    }
 }

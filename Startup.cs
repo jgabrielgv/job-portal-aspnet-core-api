@@ -41,8 +41,6 @@ namespace JobPortal
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-            // services.AddOpenIddict<ApplicationUser, 
-
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             services
             .AddAuthentication(options => {

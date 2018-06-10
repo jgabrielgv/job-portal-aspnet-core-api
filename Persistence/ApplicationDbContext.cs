@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobPortal.Persistence
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, IdentityRoleClaim<string>, ApplicationUserToken>
+    public class ApplicationDbContext : IdentityDbContext
     {
         #region Constructor
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
@@ -19,9 +19,9 @@ namespace JobPortal.Persistence
             builder.ApplyConfiguration(new CompanyConfiguration());
             builder.ApplyConfiguration(new JobConfiguration());
             builder.ApplyConfiguration(new CandidateConfiguration());
+            builder.ApplyConfiguration(new RefreshUserTokenConfiguration());
             // custom Base configuration
             builder.ApplyConfiguration(new ApplicationConfiguration());
-            builder.ApplyConfiguration(new ApplicationUserTokenConfiguration());
             base.OnModelCreating(builder);
         }
         #endregion
@@ -31,6 +31,7 @@ namespace JobPortal.Persistence
         public virtual DbSet<Candidate> Candidates { get; set; }
         public virtual DbSet<Company> Companies { get; set; }
         public virtual DbSet<Job> Jobs { get; set; }
+        public virtual DbSet<RefreshUserToken> RefreshUserTokens { get; set; }
         #endregion
     }
 }
