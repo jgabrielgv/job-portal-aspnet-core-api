@@ -34,7 +34,7 @@ namespace JobPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(optionsAction => optionsAction.UseSqlServer(Configuration["ConnectionString:ApplicationDB"]));
+            services.AddDbContext<ApplicationDbContext>(optionsAction => optionsAction.UseSqlServer(ConnectionString));
             services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -54,7 +54,7 @@ namespace JobPortal
                 configureOptions.TokenValidationParameters = new TokenValidationParameters() {
                     ValidIssuer = Configuration["JwtIssuer"],
                     ValidAudience = Configuration["JwtIssuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["ApiJwtKey"])),
                     ClockSkew = TimeSpan.Zero
                 };
             });
@@ -80,5 +80,8 @@ namespace JobPortal
 
             dbContext.Database.EnsureCreated();
         }
+
+        protected virtual string ConnectionString =>
+            $"Data Source = {Configuration.GetValue("Server", string.Empty)}; Initial Catalog ={Configuration.GetValue("Database", string.Empty)}; Integrated Security = false; User ID = {Environment.GetEnvironmentVariable("ApiDbUser")}; Password = {Environment.GetEnvironmentVariable("ApiDbPwd")}";
     }
 }

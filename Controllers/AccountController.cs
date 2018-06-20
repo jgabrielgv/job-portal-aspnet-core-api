@@ -102,19 +102,19 @@ namespace JobPortal.Controllers
                     refresh_token = refreshToken
                 });
             } else {
-                return BadRequest("Invalid login.");
+                return Unauthorized();
             }
         }
 
         protected virtual async Task<IActionResult> RefreshUserTokenLogin(LoginDTO login, ModelStateDictionary  modelState) {
             RefreshUserToken existingToken = await UnitOfWork.UserTokens.SingleOrDefaultAsync(p => p.RefreshToken == login.Refresh_Token);
             if(existingToken == null) {
-                return BadRequest("Invalid Refesh Token");
+                return Unauthorized();
             }
 
             ApplicationUser appUser = _userManager.Users.SingleOrDefault(e => e.Id == existingToken.UserId);
             if(appUser == null) {
-                return BadRequest("User no longer exists");
+                return NotFound();
             }
 
             UnitOfWork.UserTokens.Remove(existingToken);
@@ -145,9 +145,9 @@ namespace JobPortal.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("ApiJwtKey")));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["JwtExpireDays"]));
+            var expires = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["JwtExpireMinutes"]));
 
             var token = new JwtSecurityToken(
                 _configuration["JwtIssuer"],
