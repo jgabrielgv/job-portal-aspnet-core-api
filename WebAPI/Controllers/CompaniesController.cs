@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.Controllers
 {
@@ -19,15 +20,27 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get() => Ok(await UnitOfWork.Companies.GetAllAsync());
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Company>))]
+        public async Task<IActionResult> GetAllAsync() => Ok(await UnitOfWork.Companies.GetAllAsync());
 
-        [HttpGet]
-        [Route("getbyaddress")]
-        public IActionResult GetByAddress(string address) => Ok(UnitOfWork.Companies.Find(e => e.Address == address));
-
+        [HttpGet("{id}")]
+        [ProducesResponseType(200, Type = typeof(Company))]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> GetByIdAsync([Required] int id)
+        {
+            Company company = await UnitOfWork.Companies.GetAsync(id);
+            if(company == null)
+            {
+                return NotFound();
+            }
+            return Ok(company);
+        }
+        
         // will fail as long as the UserId is not assigned
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CompanyDTO company)
+        [ProducesResponseType(201, Type = typeof(Company))]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> PostAsync([FromBody] CompanyDTO company)
         {
             if (!ModelState.IsValid)
             {

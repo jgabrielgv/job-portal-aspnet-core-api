@@ -18,10 +18,10 @@ namespace WebAPI.Controllers
         public ApplicationsController(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager) : base(unitOfWork, mapper, userManager) { }
 
         [HttpGet]
-        public async Task<IActionResult> Get() => Ok(await UnitOfWork.Applications.GetAllAsync());
+        public async Task<IActionResult> GetAllAsync() => Ok(await UnitOfWork.Applications.GetAllAsync());
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ApplicationDTO application)
+        public async Task<IActionResult> PostAsync([FromBody] ApplicationDTO application)
         {
             if (!await ValidApplicationToCreate(application, ModelState))
             {
