@@ -7,6 +7,8 @@ namespace WebAPI.Core.Repositories
 {
     public interface IRepository<TEntity> where TEntity : class
     {
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
+
         TEntity Get(int id);
         Task<TEntity> GetAsync(int id);
         IEnumerable<TEntity> GetAll();

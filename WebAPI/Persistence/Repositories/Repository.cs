@@ -14,6 +14,9 @@ namespace WebAPI.Persistence.Repositories
 
         public Repository(ApplicationDbContext context) => Context = context;
 
+        public virtual async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate)
+            => await Context.Set<TEntity>().AnyAsync(predicate);
+
         public virtual TEntity Get(int id) => Context.Set<TEntity>().Find(id);
         public virtual async Task<TEntity> GetAsync(int id) => await Context.Set<TEntity>().FindAsync(id);
 

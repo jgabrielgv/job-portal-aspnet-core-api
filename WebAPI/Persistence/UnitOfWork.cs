@@ -18,6 +18,7 @@ namespace WebAPI.Persistence
             this.Companies = new CompanyRepository(_context);
             this.Jobs = new JobRepository(_context);
             this.UserTokens = new RefreshUserTokenRepository(_context);
+            this.Parties = new PartyRepository(_context);
         }
 
         public IApplicationRepository Applications { get; private set; }
@@ -25,6 +26,7 @@ namespace WebAPI.Persistence
         public ICompanyRepository Companies { get; private set; }
         public IJobRepository Jobs { get; private set; }
         public IRefreshUserToken UserTokens { get; private set; }
+        public IPartyRepository Parties { get; private set; }
 
         public int Complete() => _context.SaveChanges();
         public Task<int> CompleteAsync() => _context.SaveChangesAsync();

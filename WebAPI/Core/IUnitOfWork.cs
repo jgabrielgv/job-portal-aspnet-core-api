@@ -10,6 +10,7 @@ namespace WebAPI.Core
         ICandidateRepository Candidates { get; }
         ICompanyRepository Companies { get; }
         IJobRepository Jobs { get; }
+        IPartyRepository Parties { get; }
         IRefreshUserToken UserTokens { get; }
         int Complete();
         Task<int> CompleteAsync();

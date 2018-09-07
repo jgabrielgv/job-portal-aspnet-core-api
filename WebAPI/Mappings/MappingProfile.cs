@@ -18,6 +18,8 @@ namespace WebAPI.Mappings
             CreateMap<ApplicationDTO, Application>();
 
             CreateMap<ApplicationDTO, Candidate>();
+
+            CreateMap<CreatePartyDTO, Party>();
         }
     }
 }

@@ -22,6 +22,8 @@ namespace WebAPI.Persistence
             builder.ApplyConfiguration(new RefreshUserTokenConfiguration());
             // custom Base configuration
             builder.ApplyConfiguration(new ApplicationConfiguration());
+            builder.ApplyConfiguration(new PartyConfiguration());
+            builder.ApplyConfiguration(new OrderConfiguration());
             base.OnModelCreating(builder);
         }
         #endregion
